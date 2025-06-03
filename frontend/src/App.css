@@ -1,0 +1,360 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Movie component styles */
+.movie-container {
+  display: flex;
+  align-items: center;
+  margin: 10px auto;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+  justify-content: center;
+}
+.movie-poster {
+  width: 240px;
+  height: 360px;
+  object-fit: cover;
+  margin-right: 15px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.movie-details {
+  flex: 1;
+}
+.favorite-button {
+  margin-top: 10px;
+  padding: 6px 12px;
+  background-color: transparent;
+  color: #bbb;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 2.5rem;
+  transition: color 0.2s, transform 0.1s;
+  outline: none;
+}
+.favorite-button-active {
+  color: #e53935 !important;
+}
+.favorite-button-pressed {
+  transform: scale(1.2);
+}
+.movie-imdb-link {
+  color: #0077cc;
+  text-decoration: underline;
+}
+.movie-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  cursor: zoom-out;
+}
+.movie-large-poster, .movie-responsiveLargePoster {
+  width: 80vw;
+  height: auto;
+  max-width: 700px;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: width 0.2s, height 0.2s;
+  display: block;
+}
+
+/* Navigation component styles */
+.navigation {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: #23272b;
+  color: #fff;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+.navigation-link {
+  color: #ffd700;
+  text-decoration: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+.navigation-link:hover {
+  background: #444b52;
+  color: #fff;
+}
+.navigation-link-active {
+  font-weight: bold;
+  background: #1976d2;
+  color: #fff !important;
+  text-decoration: underline;
+}
+
+/* Register component styles */
+.register-title {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+  color: #234;
+}
+.register-card {
+  max-width: 500px;
+  margin: 40px auto;
+  border: 3px solid #356;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 10px;
+  background: #fff;
+}
+.register-card-header {
+  background: #f5f5f5;
+  font-size: 1.2rem;
+  text-align: center;
+  color: #234;
+  padding: 16px 0 0 0;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.register-card-content {
+  padding: 24px 32px 32px 32px;
+}
+.register-form-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.register-textfield {
+  padding: 10px 12px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 1rem;
+  background: #f9f9f9;
+  outline: none;
+  transition: border 0.2s;
+}
+.register-textfield:focus {
+  border: 1.5px solid #356;
+  background: #fff;
+}
+.register-error {
+  color: #e53935;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.register-button {
+  margin-top: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 10px 0;
+  border: none;
+  border-radius: 4px;
+  background: #356;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.register-button:hover {
+  background: #234;
+}
+
+/* Login component styles */
+.login-title {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+  color: #234;
+}
+.login-card {
+  max-width: 400px;
+  margin: 40px auto;
+  border: 3px solid #356;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 10px;
+  background: #fff;
+}
+.login-card-header {
+  background: #f5f5f5;
+  font-size: 1.2rem;
+  text-align: center;
+  color: #234;
+  padding: 16px 0 0 0;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.login-card-content {
+  padding: 24px 32px 32px 32px;
+}
+.login-form-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.login-textfield {
+  padding: 10px 12px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 1rem;
+  background: #f9f9f9;
+  outline: none;
+  transition: border 0.2s;
+}
+.login-textfield:focus {
+  border: 1.5px solid #356;
+  background: #fff;
+}
+.login-error {
+  color: #e53935;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.login-button {
+  margin-top: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 10px 0;
+  border: none;
+  border-radius: 4px;
+  background: #356;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.login-button:hover {
+  background: #234;
+}
+
+/* Add style for login success message */
+.login-success {
+  color: #388e3c;
+  background: #e8f5e9;
+  border: 1px solid #388e3c;
+  border-radius: 4px;
+  padding: 10px 0;
+  text-align: center;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+/* Center the search form on the page */
+.search-form-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  width: 250px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-button {
+  padding: 8px 18px;
+  border-radius: 4px;
+  border: none;
+  background-color: #1976d2;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.search-button:hover {
+  background-color: #1565c0;
+}
+
+body {
+  background-color: #181a1b;
+  color: #f5f5f5;
+}
+
+/* Optional: style the main container for SearchMovies */
+.search-movies-container {
+  background: #23272b;
+  border-radius: 12px;
+  padding: 32px 24px;
+  margin: 32px auto;
+  max-width: 800px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+/* Adjust pagination buttons for dark mode */
+.pagination {
+  color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  margin: 0 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.pagination:disabled {
+  background: #444b52;
+  color: #ffffff;
+  cursor: not-allowed;
+}
