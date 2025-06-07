@@ -1,5 +1,7 @@
 /backend/target/classes
 backend/HELP.md
 /backend/target
-backend/.mvn/wrapper/maven-wrapper.properties
 frontend/README.md
+backend/target/test-classes/com/dome/movie/MovieApplicationTests.class
+/backend/target/test-classes
+*.class
