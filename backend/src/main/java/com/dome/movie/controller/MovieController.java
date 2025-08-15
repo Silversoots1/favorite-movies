@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
@@ -22,27 +24,23 @@ public class MovieController {
     @Autowired
     private MovieService movieService;
 
-    @PostMapping("/getMovies")
-    public ResponseEntity<?> getMovies(@RequestBody MovieSearchRequest request, @AuthenticationPrincipal UserDetails userDetails) {
+    @GetMapping("/movies")
+    public ResponseEntity<?> getMovies(@RequestParam String movie, @RequestParam int page, @AuthenticationPrincipal UserDetails userDetails) {
+        MovieSearchRequest request = new MovieSearchRequest(movie, page);
         return movieService.getMovies(request, userDetails);
     }
 
-    @PostMapping("/setFavorite")
-    public ResponseEntity<?> setFavorite(@RequestBody Map<String, String> payload, @AuthenticationPrincipal UserDetails userDetails) {
-        return movieService.setFavorite(payload, userDetails);
+    @PostMapping("/favorite")
+    public ResponseEntity<?> addFavorite(@RequestBody Map<String, String> payload, @AuthenticationPrincipal UserDetails userDetails) {
+        return movieService.addFavorite(payload, userDetails);
     }
 
-    @PostMapping("/getFavorites")
+    @GetMapping("/favorite")
     public ResponseEntity<?> getFavorites(@AuthenticationPrincipal UserDetails userDetails) {
         return movieService.getFavorites(userDetails);
     }
 
-    @PostMapping("/isFavorite")
-    public ResponseEntity<?> isFavorite(@RequestBody Movies movie, @AuthenticationPrincipal UserDetails userDetails) {
-        return movieService.isFavorite(movie, userDetails);
-    }
-
-    @DeleteMapping("deleteFavorite")
+    @DeleteMapping("favorite")
     public ResponseEntity<?> deleteFavorite(@RequestBody Movies movie, @AuthenticationPrincipal UserDetails userDetails) {
         return movieService.deleteFavorite(movie, userDetails);
     }

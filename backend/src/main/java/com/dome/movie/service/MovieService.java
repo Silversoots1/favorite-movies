@@ -85,7 +85,7 @@ public class MovieService {
         }
     }
 
-    public ResponseEntity<?> setFavorite(Map<String, String> payload, UserDetails userDetails) {
+    public ResponseEntity<?> addFavorite(Map<String, String> payload, UserDetails userDetails) {
         String imdbID = payload.get("imdbID");
         if (imdbID == null || imdbID.isEmpty()) {
             return ResponseEntity.badRequest().body("imdbID is required.");
@@ -106,17 +106,17 @@ public class MovieService {
             if (omdbMap.containsKey("Error")) {
                 return ResponseEntity.status(404).body("Movie not found in OMDb: " + omdbMap.get("Error"));
             }
-            // Manual mapping from OMDb fields to Movies entity
+
             movie = new Movies();
             movie.setimdbID((String) omdbMap.get("imdbID"));
             movie.setTitle((String) omdbMap.get("Title"));
-            // OMDb Year is a string, Movies expects int
+
             String yearStr = (String) omdbMap.get("Year");
             if (yearStr != null) {
                 try {
                     movie.setYear(Integer.parseInt(yearStr));
                 } catch (NumberFormatException nfe) {
-                    movie.setYear(0); // fallback if year is not a number
+                    movie.setYear(0);
                 }
             }
             movie.setType((String) omdbMap.get("Type"));
@@ -160,18 +160,6 @@ public class MovieService {
             return ResponseEntity.ok("No favorite movies found for this user.");
         }
         return ResponseEntity.ok(favoriteMovies);
-    }
-
-    public ResponseEntity<?> isFavorite(Movies movie, UserDetails userDetails) {
-        ResponseEntity<?> userResponse = userService.getAuthenticatedUser(userDetails);
-        if (!userResponse.getStatusCode().is2xxSuccessful()) {
-            return userResponse;
-        }
-
-        User user = (User) userResponse.getBody();
-        boolean exists = userFavoritesRepository.existsByUserAndMovie(user, movie);
-
-        return ResponseEntity.ok(exists);
     }
 
     public ResponseEntity<?> deleteFavorite(Movies movie, UserDetails userDetails) {

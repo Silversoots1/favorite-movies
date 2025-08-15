@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SearchForm from "./SearchForm";
 import MovieList from "./MovieList";
-import { getMovies, setFavorite, deleteFavorite } from "../services/movieService";
+import { getMovies, addFavorite, deleteFavorite } from "../services/movieService";
 import { useAuth } from "./AuthContext";
 import { Navigate } from "react-router-dom";
 import { MOVIES_PER_PAGE } from "../apiConfig";
@@ -28,7 +28,7 @@ function SearchMovies() {
           m.imdbID === movie.imdbID ? { ...m, isFavorite: false } : m
         ));
       } else {
-        await setFavorite(movie.imdbID);
+        await addFavorite(movie.imdbID);
         setMovies(movies => movies.map(m =>
           m.imdbID === movie.imdbID ? { ...m, isFavorite: true } : m
         ));
@@ -41,7 +41,7 @@ function SearchMovies() {
   const handleSearch = async (movie) => {
     try {
       setSearchTerm(movie);
-      const data = await getMovies(searchTerm, currentPage);
+      const data = await getMovies(movie, currentPage);
       const moviesArray = Array.isArray(data.movies) ? data.movies : (Array.isArray(data) ? data : []);
       setMovies(moviesArray);
       setTotalResults(Number(data.totalResults) || (moviesArray.length || 0));
