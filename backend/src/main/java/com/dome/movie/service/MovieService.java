@@ -15,8 +15,6 @@ import com.dome.movie.model.User;
 import com.dome.movie.model.UserFavorites;
 import com.dome.movie.repository.UserFavoritesRepository;
 import com.dome.movie.repository.MoviesRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -34,52 +32,24 @@ public class MovieService {
     public ResponseEntity<?> getMovies(MovieSearchRequest request, UserDetails userDetails) {
         String movieTitle = request.getMovie();
         Integer page = request.getPage() == null ? 1 : request.getPage();
+        ResponseEntity<?> userResponse = userService.getAuthenticatedUser(userDetails);
+
+        if (!userResponse.getStatusCode().is2xxSuccessful()) {
+            return userResponse;
+        }
 
         if (movieTitle == null || movieTitle.isEmpty()) {
             return ResponseEntity.badRequest().body("Movie title is required.");
         }
 
-        ResponseEntity<?> userResponse = userService.getAuthenticatedUser(userDetails);
-        if (!userResponse.getStatusCode().is2xxSuccessful()) {
-            return userResponse;
-        }
-
         try {
-            String omdbJson = omdbService.getAllMoviesByTitle(movieTitle, page);
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> omdbMap = mapper.readValue(omdbJson, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> omdbMap = omdbService.fetchOmdbMovies(movieTitle, page);
             Object searchResults = omdbMap.get("Search");
 
             if (!(searchResults instanceof List<?>)) {
                 return ResponseEntity.ok(searchResults);
             }
-
-            List<?> moviesList = (List<?>) searchResults;
-            User user = (User) userResponse.getBody();
-            List<MovieWithFavoriteResponse> moviesWithFavorite = new java.util.ArrayList<>();
-
-            for (Object obj : moviesList) {
-                if (obj instanceof Map<?, ?>) {
-                    Map<?, ?> rawMap = (Map<?, ?>) obj;
-                    MovieWithFavoriteResponse movieDto = new MovieWithFavoriteResponse();
-                    movieDto.setImdbID((String) rawMap.get("imdbID"));
-                    movieDto.setTitle((String) rawMap.get("Title"));
-                    movieDto.setYear((String) rawMap.get("Year"));
-                    movieDto.setType((String) rawMap.get("Type"));
-                    movieDto.setPoster((String) rawMap.get("Poster"));
-                    boolean isFavorite = movieDto.getImdbID() != null && user != null &&
-                            userFavoritesRepository.existsByUserAndMovieImdbID(user, movieDto.getImdbID());
-                    movieDto.setFavorite(isFavorite);
-                    moviesWithFavorite.add(movieDto);
-                }
-            }
-
-            Object totalResults = omdbMap.get("totalResults");
-            Map<String, Object> responseMap = new java.util.HashMap<>();
-            responseMap.put("movies", moviesWithFavorite);
-            responseMap.put("totalResults", totalResults);
-
-            return ResponseEntity.ok(responseMap);
+            return ResponseEntity.ok(buildMoviesResponse(searchResults, userResponse, omdbMap));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error fetching or parsing movies: " + e.getMessage());
         }
@@ -97,49 +67,24 @@ public class MovieService {
         }
         User user = (User) userResponse.getBody();
 
-        // Fetch movie details from OMDb
-        String omdbJson = omdbService.getMovieByImdbID(imdbID);
         Movies movie;
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> omdbMap = mapper.readValue(omdbJson, new TypeReference<Map<String, Object>>() {});
-            if (omdbMap.containsKey("Error")) {
-                return ResponseEntity.status(404).body("Movie not found in OMDb: " + omdbMap.get("Error"));
+            movie = omdbService.fetchMovieFromOmdb(imdbID);
+            if (movie == null) {
+                return ResponseEntity.status(404).body("Movie not found in OMDb: " + imdbID);
             }
-
-            movie = new Movies();
-            movie.setimdbID((String) omdbMap.get("imdbID"));
-            movie.setTitle((String) omdbMap.get("Title"));
-
-            String yearStr = (String) omdbMap.get("Year");
-            if (yearStr != null) {
-                try {
-                    movie.setYear(Integer.parseInt(yearStr));
-                } catch (NumberFormatException nfe) {
-                    movie.setYear(0);
-                }
-            }
-            movie.setType((String) omdbMap.get("Type"));
-            movie.setPoster((String) omdbMap.get("Poster"));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Failed to fetch or parse movie from OMDb: " + e.getMessage());
         }
 
-        // Save movie if not already in DB
         Movies savedMovie = moviesRepository.findByImdbID(imdbID)
             .orElseGet(() -> moviesRepository.save(movie));
 
-        // Check if already a favorite
-        boolean exists = userFavoritesRepository.existsByUserAndMovie(user, savedMovie);
-        if (exists) {
+        if (isAlreadyFavorite(user, savedMovie)) {
             return ResponseEntity.badRequest().body("Movie already in favorites");
         }
 
-        // Save as favorite
-        UserFavorites favorite = new UserFavorites();
-        favorite.setUser(user);
-        favorite.setMovie(savedMovie);
-        userFavoritesRepository.save(favorite);
+        saveUserFavorite(user, savedMovie);
         return ResponseEntity.ok("Movie added to favorites successfully!");
     }
 
@@ -179,4 +124,51 @@ public class MovieService {
         userFavoritesRepository.delete(favorite);
         return ResponseEntity.ok("Favorite movie deleted successfully!");
     }
+
+    private Map<String, Object> buildMoviesResponse(Object searchResults, ResponseEntity<?> userResponse, Map<String, Object> omdbMap) {
+
+        List<MovieWithFavoriteResponse> moviesWithFavorite = buildMoviesWithFavorite(
+            (List<?>) searchResults,
+            (User) userResponse.getBody()
+        );
+
+        Object totalResults = omdbMap.get("totalResults");
+        Map<String, Object> responseMap = new java.util.HashMap<>();
+        responseMap.put("movies", moviesWithFavorite);
+        responseMap.put("totalResults", totalResults);
+        return responseMap;
+    }
+
+    private List<MovieWithFavoriteResponse> buildMoviesWithFavorite(List<?> moviesList, User user) {
+        List<MovieWithFavoriteResponse> moviesWithFavorite = new java.util.ArrayList<>();
+        for (Object obj : moviesList) {
+            if (obj instanceof Map<?, ?>) {
+                Map<?, ?> rawMap = (Map<?, ?>) obj;
+                MovieWithFavoriteResponse movieDto = new MovieWithFavoriteResponse();
+                movieDto.setImdbID((String) rawMap.get("imdbID"));
+                movieDto.setTitle((String) rawMap.get("Title"));
+                movieDto.setYear((String) rawMap.get("Year"));
+                movieDto.setType((String) rawMap.get("Type"));
+                movieDto.setPoster((String) rawMap.get("Poster"));
+                boolean isFavorite = movieDto.getImdbID() != null && user != null &&
+                        userFavoritesRepository.existsByUserAndMovieImdbID(user, movieDto.getImdbID());
+                movieDto.setFavorite(isFavorite);
+                moviesWithFavorite.add(movieDto);
+            }
+        }
+        
+        return moviesWithFavorite;
+    }
+
+    private boolean isAlreadyFavorite(User user, Movies movie) {
+        return userFavoritesRepository.existsByUserAndMovie(user, movie);
+    }
+
+    private void saveUserFavorite(User user, Movies movie) {
+        UserFavorites favorite = new UserFavorites();
+        favorite.setUser(user);
+        favorite.setMovie(movie);
+        userFavoritesRepository.save(favorite);
+    }
+
 }
